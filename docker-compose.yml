@@ -2,11 +2,23 @@
 version: "3"
 services:
 
-  server:
+  server0:
     image: haproxytechblog/grpc-sample-server
     build:
       context: ./sample
       dockerfile: Dockerfile.server
+    environment: 
+    - "BIND=:3000"
+    - "SERVER=server0"
+
+  server1:
+    image: haproxytechblog/grpc-sample-server
+    build:
+      context: ./sample
+      dockerfile: Dockerfile.server
+    environment: 
+    - "BIND=:3001"
+    - "SERVER=server1"
 
   haproxy:
     image: haproxytech/haproxy-ubuntu:1.9.2
@@ -15,7 +27,8 @@ services:
     - "./sample/creds/haproxy.pem:/etc/haproxy/pem/haproxy.pem"
     - "./sample/creds/server.crt:/etc/haproxy/pem/server.crt"
     depends_on:
-    - server
+    - server0
+    - server1
 
   client:
     image: haproxytechblog/grpc-sample-client

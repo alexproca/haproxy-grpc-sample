@@ -9,6 +9,7 @@ import (
 	"net"
 	"strings"
 	"time"
+	"os"
 
 	// The Protobuf generated file
 	creator "app/codenamecreator"
@@ -17,6 +18,8 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/metadata"
 )
+
+var serverName = os.Getenv("SERVER")
 
 type codenameGenerator struct {
 	Adverbs    []string
@@ -93,7 +96,7 @@ func (s *codenameServer) KeepGettingCodenames(stream creator.CodenameCreator_Kee
 			codename = generator.generate(category)
 		}
 
-		result := &creator.NameResult{Name: codename}
+		result := &creator.NameResult{Name: codename, Server: serverName}
 		err := stream.Send(result)
 		if err != nil {
 			return err
@@ -105,7 +108,8 @@ func (s *codenameServer) KeepGettingCodenames(stream creator.CodenameCreator_Kee
 }
 
 func main() {
-	address := ":3000"
+	// address := ":3000"
+	address := os.Getenv("BIND")
 	crt := "server.crt"
 	key := "server.key"
 
