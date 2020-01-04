@@ -3,6 +3,7 @@ FROM golang:alpine AS build
 RUN apk add git protobuf
 RUN go get -u google.golang.org/grpc
 RUN go get -u github.com/golang/protobuf/protoc-gen-go
+RUN go get -u github.com/gorilla/mux
 
 # Copy files to container
 WORKDIR /go/src/app

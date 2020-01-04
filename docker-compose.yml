@@ -10,6 +10,7 @@ services:
     environment: 
     - "BIND=:3000"
     - "SERVER=server0"
+    - "SERVER_HTTP=:8080"    
 
   server1:
     image: haproxytechblog/grpc-sample-server
@@ -19,6 +20,17 @@ services:
     environment: 
     - "BIND=:3001"
     - "SERVER=server1"
+    - "SERVER_HTTP=:8081"
+
+  server2:
+    image: haproxytechblog/grpc-sample-server
+    build:
+      context: ./sample
+      dockerfile: Dockerfile.server
+    environment: 
+    - "BIND=:3002"
+    - "SERVER=server2"
+    - "SERVER_HTTP=:8082"
 
   haproxy:
     image: haproxytech/haproxy-ubuntu:1.9.2
@@ -30,6 +42,16 @@ services:
     - server0
     - server1
 
+  # nginx:
+  #   image: nginx:1.14-alpine
+  #   volumes:
+  #   - "./sample/nginx/nginx.conf:/etc/nginx/nginx.conf"
+  #   - "./sample/creds/haproxy.pem:/ssl/tls.key"
+  #   - "./sample/creds/server.crt:/ssl/tls.crt"
+  #   depends_on:
+  #   - server0
+  #   - server1
+
   client:
     image: haproxytechblog/grpc-sample-client
     build:
@@ -37,6 +59,7 @@ services:
       dockerfile: Dockerfile.client
     environment:
     - "SERVER_ADDRESS=haproxy:3001"
+    - "SERVER_ADDRESS_HTTP=https://haproxy:8081/hello"
     - "TLS_CERT=haproxy.crt"
     depends_on:
     - haproxy

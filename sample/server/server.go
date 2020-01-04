@@ -7,19 +7,22 @@ import (
 	"log"
 	"math/rand"
 	"net"
+	"net/http"
+	"os"
 	"strings"
 	"time"
-	"os"
 
 	// The Protobuf generated file
 	creator "app/codenamecreator"
 
+	// "github.com/gorilla/mux"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/metadata"
 )
 
 var serverName = os.Getenv("SERVER")
+var httpServerPort = os.Getenv("SERVER_HTTP")
 
 type codenameGenerator struct {
 	Adverbs    []string
@@ -52,7 +55,7 @@ type codenameServer struct{}
 func (s *codenameServer) GetCodename(ctx context.Context, request *creator.NameRequest) (*creator.NameResult, error) {
 	generator := newCodenameGenerator()
 	codename := generator.generate(request.Category)
-	return &creator.NameResult{Name: codename}, nil
+	return &creator.NameResult{Name: codename, Server: serverName}, nil
 }
 
 func (s *codenameServer) KeepGettingCodenames(stream creator.CodenameCreator_KeepGettingCodenamesServer) error {
@@ -107,7 +110,36 @@ func (s *codenameServer) KeepGettingCodenames(stream creator.CodenameCreator_Kee
 	return nil
 }
 
+func helloHandler(w http.ResponseWriter, r *http.Request) {
+	response := "Hello from: " + serverName
+	fmt.Fprintln(w, response)
+}
+
 func main() {
+
+	// Start a simple http
+
+	// router := mux.NewRouter()
+
+	// router.HandleFunc("/hello", configHandler)
+
+	go func() {
+		// server := &http.Server{
+		// 	Addr:    fmt.Sprintf(":%v", httpServerPort),
+		// 	Handler: router,
+		// }
+
+		http.HandleFunc("/hello", helloHandler)
+
+		log.Printf("Starting https server on port %v", httpServerPort)
+
+		err := http.ListenAndServeTLS(httpServerPort, "server.crt", "server.key", nil)
+		if err != nil {
+			log.Fatal("ListenAndServe: ", err)
+		}
+
+	}()
+
 	// address := ":3000"
 	address := os.Getenv("BIND")
 	crt := "server.crt"

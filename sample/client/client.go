@@ -2,9 +2,12 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 	"time"
 
@@ -15,6 +18,8 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/metadata"
 )
+
+var addressHTTP = os.Getenv("SERVER_ADDRESS_HTTP")
 
 func main() {
 	address := os.Getenv("SERVER_ADDRESS")
@@ -37,14 +42,30 @@ func main() {
 	// Optional: add some metadata
 	ctx = metadata.AppendToOutgoingContext(ctx, "mysecretpassphrase", "abc123")
 
-	getCodenamesStreamingExample(ctx, client)
+	// getCodenamesStreamingExample(ctx, client)
 	// getSingleCodenameAndExitExample(ctx, client, "Science")
+
+	for {
+		getHTTPHello()
+		getSingleCodenameAndExitExample(ctx, client, "Science")
+		time.Sleep(5 * time.Second)
+	}
+}
+
+func getHTTPHello() {
+	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+	if resp, err := http.Get(addressHTTP); err == nil {
+		response, _ := ioutil.ReadAll(resp.Body)
+		log.Printf("Hello result: %s", response)
+	} else {
+		log.Printf("Could not get result, %v", err)
+	}
 }
 
 func getSingleCodenameAndExitExample(ctx context.Context, client creator.CodenameCreatorClient, category string) {
 	result, err := client.GetCodename(ctx, &creator.NameRequest{Category: category})
 	if err != nil {
-		log.Fatalf("Could not get result, %v", err)
+		log.Printf("Could not get result, %v", err)
 	}
 
 	log.Printf("Codename result: %s", result)
