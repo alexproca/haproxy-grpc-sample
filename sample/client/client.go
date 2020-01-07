@@ -56,7 +56,7 @@ func getHTTPHello() {
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	if resp, err := http.Get(addressHTTP); err == nil {
 		response, _ := ioutil.ReadAll(resp.Body)
-		log.Printf("Hello result: %s", response)
+		log.Printf("HTTPS: Hello result: %s", response)
 	} else {
 		log.Printf("Could not get result, %v", err)
 	}
@@ -68,7 +68,7 @@ func getSingleCodenameAndExitExample(ctx context.Context, client creator.Codenam
 		log.Printf("Could not get result, %v", err)
 	}
 
-	log.Printf("Codename result: %s", result)
+	log.Printf("GRPC: Codename result: %s", result)
 }
 
 func getCodenamesStreamingExample(ctx context.Context, client creator.CodenameCreatorClient) {
